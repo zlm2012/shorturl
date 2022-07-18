@@ -29,4 +29,5 @@ type Manager struct {
 type Redirecter struct {
 	bks     map[int64]Backend
 	baseUrl *url.URL
+	strict  bool
 }

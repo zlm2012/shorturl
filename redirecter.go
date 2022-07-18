@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func NewRedirecter(files []string, baseUrl string) (*Redirecter, error) {
+func NewRedirecter(files []string, baseUrl string, strict bool) (*Redirecter, error) {
 	bks := make(map[int64]Backend)
 	for _, f := range files {
 		bk, err := SqliteOpen(f, false, 0)
@@ -37,12 +37,22 @@ func NewRedirecter(files []string, baseUrl string) (*Redirecter, error) {
 	if !strings.HasSuffix(realBaseUrl.Path, "/") {
 		realBaseUrl.Path += "/"
 	}
-	return &Redirecter{bks, realBaseUrl}, nil
+	return &Redirecter{bks, realBaseUrl, strict}, nil
 }
 
 func (r *Redirecter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if r.strict && req.Host != r.baseUrl.Host {
+		w.WriteHeader(404)
+		_, _ = io.WriteString(w, "not found")
+		return
+	}
 	reqPathDir, reqBase := path.Split(req.RequestURI)
 	if reqPathDir != r.baseUrl.Path {
+		w.WriteHeader(404)
+		_, _ = io.WriteString(w, "not found")
+		return
+	}
+	if reqBase == "" {
 		w.WriteHeader(404)
 		_, _ = io.WriteString(w, "not found")
 		return
