@@ -1,10 +1,13 @@
 module shorturl
 
-go 1.17
+go 1.23
 
 require (
-	github.com/bwmarrin/snowflake v0.3.0 // indirect
-	github.com/jessevdk/go-flags v1.5.0 // indirect
-	github.com/mattn/go-sqlite3 v1.14.14 // indirect
-	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4 // indirect
+	github.com/bwmarrin/snowflake v0.3.0
+	github.com/fsnotify/fsnotify v1.8.0
+	github.com/jessevdk/go-flags v1.6.1
+	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 )
+
+require golang.org/x/sys v0.21.0 // indirect

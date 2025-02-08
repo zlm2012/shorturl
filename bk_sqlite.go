@@ -77,6 +77,16 @@ func (s *sqliteBackend) InsertUrl(entry *UrlEntry) error {
 	return err
 }
 
+func (s *sqliteBackend) Delete(id uint64) error {
+	query := `DELETE FROM url WHERE id=?`
+	stmt, err := s.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(id)
+	return err
+}
+
 func (s *sqliteBackend) QueryByUrl(url string) ([]UrlEntry, error) {
 	query := `SELECT * FROM url WHERE url = ? AND (expire_at IS NULL OR expire_at > ?)`
 	stmt, err := s.db.Prepare(query)
@@ -101,6 +111,23 @@ func (s *sqliteBackend) QueryByUrl(url string) ([]UrlEntry, error) {
 		result = append(result, entry)
 	}
 	return result, nil
+}
+
+func (s *sqliteBackend) count() (int, error) {
+	query := `SELECT COUNT(1) FROM url`
+	stmt, err := s.db.Prepare(query)
+	if err != nil {
+		return 0, err
+	}
+	row, err := stmt.Query()
+	if err != nil {
+		return 0, err
+	}
+	defer row.Close()
+	row.Next()
+	count := 0
+	err = row.Scan(&count)
+	return count, err
 }
 
 func (s *sqliteBackend) QueryById(id uint64) (*UrlEntry, error) {
@@ -134,7 +161,7 @@ func (s *sqliteBackend) ClearExpired() error {
 	if err != nil {
 		return err
 	}
-	if err = createTmpTables(s.db); err != nil {
+	if err = createTmpTables(tx); err != nil {
 		return err
 	}
 
@@ -161,16 +188,12 @@ func (s *sqliteBackend) ClearExpired() error {
 	return tx.Commit()
 }
 
-func createTmpTables(db *sql.DB) error {
+func createTmpTables(tx *sql.Tx) error {
 	ddl := `CREATE TABLE tmp_url (
 			"id" INTEGER NOT NULL PRIMARY KEY,
 			"url" TEXT NOT NULL,
 			"expire_at" INTEGER);`
-	stmt, err := db.Prepare(ddl)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec()
+	_, err := tx.Exec(ddl)
 	return err
 }
 

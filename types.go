@@ -3,6 +3,7 @@ package shorturl
 import (
 	"database/sql"
 	"github.com/bwmarrin/snowflake"
+	"github.com/patrickmn/go-cache"
 	"net/url"
 )
 
@@ -30,4 +31,5 @@ type Redirecter struct {
 	bks     map[int64]Backend
 	baseUrl *url.URL
 	strict  bool
+	cache   *cache.Cache
 }
